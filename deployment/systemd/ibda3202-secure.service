@@ -1,0 +1,77 @@
+# ============================================================
+#  Systemd Service — IBDA3202 Secure Store
+#  File: /etc/systemd/system/ibda3202-secure.service
+#
+#  Install:
+#    sudo cp ibda3202-secure.service /etc/systemd/system/
+#    sudo systemctl daemon-reload
+#    sudo systemctl enable --now ibda3202-secure
+# ============================================================
+
+[Unit]
+Description=IBDA3202 Secure Store
+Documentation=https://github.com/ibda3202/store
+After=network.target
+Wants=network.target
+
+[Service]
+User=ibda3202
+Group=ibda3202
+
+WorkingDirectory=/var/www/ibda3202-secure
+
+# Load environment variables dari .env
+EnvironmentFile=/var/www/ibda3202-secure/.env
+Environment="PATH=/var/www/ibda3202-secure/venv/bin"
+
+ExecStart=/var/www/ibda3202-secure/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:5001 \
+    --timeout 30 \
+    --access-logfile /var/log/ibda3202/secure-gunicorn-access.log \
+    --error-logfile  /var/log/ibda3202/secure-gunicorn-error.log \
+    --log-level info \
+    --capture-output \
+    --forwarded-allow-ips="127.0.0.1" \
+    app:app
+
+Restart=on-failure
+RestartSec=5s
+
+# Batas resource
+LimitNOFILE=65536
+LimitNPROC=512
+
+# ── Sandboxing systemd (lebih ketat untuk app aman) ──────
+# Tidak boleh buat file setuid
+NoNewPrivileges=yes
+
+# /tmp private — proses tidak bisa lihat /tmp proses lain
+PrivateTmp=yes
+
+# Tidak bisa akses device langsung
+PrivateDevices=yes
+
+# Filesystem read-only kecuali yang diperlukan
+ProtectSystem=strict
+ReadWritePaths=/var/www/ibda3202-secure
+ReadWritePaths=/var/log/ibda3202
+
+# Tidak bisa modifikasi /home user lain
+ProtectHome=yes
+
+# Namespace protections
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+
+# Hanya izinkan system call yang diperlukan Flask
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ibda3202-secure
+
+[Install]
+WantedBy=multi-user.target
