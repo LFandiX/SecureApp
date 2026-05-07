@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Buat Akun — IBDA3202 Store{% endblock %}
+{% block extra_style %}
+.register-wrap { min-height: calc(100vh - 80px); display: grid; grid-template-columns: 1fr 1fr; }
+@media (max-width: 768px) { .register-wrap { grid-template-columns: 1fr; } .register-side { display: none; } }
+.register-form-col { display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+.register-card { width: 100%; max-width: 440px; }
+.register-side { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; padding: 4rem 3rem; position: relative; overflow: hidden; }
+.register-side::before { content: ''; position: absolute; bottom: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(108,99,255,0.12) 0%, transparent 65%); pointer-events: none; }
+.perk-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 1.6rem; }
+.perk-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.perk-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 2px; }
+.perk-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+.strength-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.strength-fill { height: 100%; border-radius: 2px; width: 0%; transition: width 0.3s, background 0.3s; }
+.step-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2rem; }
+.step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+.step-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+.step-dot.done { background: var(--success); }
+.toggle-pw { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; padding: 0; }
+{% endblock %}
+{% block content %}
+<div class="register-wrap">
+  <div class="register-form-col">
+    <div class="register-card fade-up">
+      <a href="/login" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:1.8rem">
+        <i class="bi bi-arrow-left"></i> Sudah punya akun?
+      </a>
+      <div class="step-row"><div class="step-dot active" id="dot1"></div><div class="step-dot" id="dot2"></div><div class="step-dot" id="dot3"></div></div>
+      <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.3rem">Buat Akun Baru</h1>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.8rem">Bergabunglah dengan ribuan pengguna IBDA3202 Store</p>
+
+      {% if errors %}
+      <div class="alert-dark mb-4">
+        <div style="font-weight:600;margin-bottom:0.4rem"><i class="bi bi-exclamation-triangle-fill me-2"></i>Harap perbaiki:</div>
+        <ul style="margin:0;padding-left:1.2rem;font-size:0.83rem">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+
+      <form method="POST" action="/register" novalidate>
+        <!-- [S5] CSRF -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+
+        <div class="mb-3">
+          <label class="form-label-dark">Username <span style="color:var(--danger)">*</span></label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-person icon-left"></i>
+            <input type="text" name="username" id="usernameInput" class="form-control-dark" placeholder="Hanya huruf, angka, underscore" value="{{ form.get('username','') }}" maxlength="30" autocomplete="username" required />
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px">3–30 karakter. Hanya a–z, 0–9, underscore.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-dark">Email <span style="color:var(--danger)">*</span></label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-envelope icon-left"></i>
+            <input type="email" name="email" id="emailInput" class="form-control-dark" placeholder="nama@email.com" value="{{ form.get('email','') }}" maxlength="100" autocomplete="email" required />
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label-dark">Password <span style="color:var(--danger)">*</span></label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-lock icon-left"></i>
+            <input type="password" name="password" id="passwordInput" class="form-control-dark" placeholder="Minimal 6 karakter" autocomplete="new-password" minlength="6" required />
+            <button type="button" class="toggle-pw" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password';this.querySelector('i').className=this.previousElementSibling.type==='password'?'bi bi-eye':'bi bi-eye-slash'"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+          <div id="strengthLabel" style="font-size:0.7rem;margin-top:3px"></div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label-dark">Konfirmasi Password <span style="color:var(--danger)">*</span></label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-lock-fill icon-left"></i>
+            <input type="password" name="confirm_password" id="confirmInput" class="form-control-dark" placeholder="Ulangi password" autocomplete="new-password" required />
+            <button type="button" class="toggle-pw" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password';this.querySelector('i').className=this.previousElementSibling.type==='password'?'bi bi-eye':'bi bi-eye-slash'"><i class="bi bi-eye"></i></button>
+          </div>
+          <div id="matchHint" style="font-size:0.72rem;margin-top:4px;min-height:1rem"></div>
+        </div>
+
+        <div class="d-flex align-items-start gap-2 mb-4">
+          <input type="checkbox" id="terms" required style="width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;margin-top:2px;cursor:pointer" />
+          <label for="terms" style="font-size:0.8rem;color:var(--text-muted);line-height:1.5;cursor:pointer">
+            Saya setuju dengan <a href="#" style="color:var(--accent);text-decoration:none">Syarat & Ketentuan</a> dan <a href="#" style="color:var(--accent);text-decoration:none">Kebijakan Privasi</a>.
+          </label>
+        </div>
+
+        <button type="submit" class="btn-accent w-100 justify-content-center" style="padding:0.8rem;font-size:0.9rem">
+          <i class="bi bi-person-plus-fill"></i> Buat Akun Sekarang
+        </button>
+      </form>
+
+      <p style="text-align:center;margin-top:1.5rem;font-size:0.8rem;color:var(--text-muted)">
+        Sudah punya akun? <a href="/login" style="color:var(--accent);text-decoration:none;font-weight:600">Masuk di sini</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="register-side">
+    <div style="position:relative;z-index:1">
+      <div style="font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:2px;color:var(--accent);font-weight:700;margin-bottom:1rem;text-transform:uppercase">Kenapa IBDA3202 Store?</div>
+      <h2 style="font-size:1.6rem;font-weight:700;letter-spacing:-0.5px;margin-bottom:2.5rem;line-height:1.3">Akses Ribuan Produk<br>Digital Premium</h2>
+      <div class="perk-item">
+        <div class="perk-icon" style="background:var(--accent-soft)">🔐</div>
+        <div><div class="perk-title">Lisensi 100% Resmi</div><div class="perk-desc">Semua produk bersumber dari publisher resmi. Garansi keaslian setiap pembelian.</div></div>
+      </div>
+      <div class="perk-item">
+        <div class="perk-icon" style="background:var(--gold-soft)">⚡</div>
+        <div><div class="perk-title">Pengiriman Instan</div><div class="perk-desc">Kunci lisensi dikirim otomatis ke email dalam hitungan detik setelah pembayaran.</div></div>
+      </div>
+      <div class="perk-item">
+        <div class="perk-icon" style="background:rgba(34,197,94,0.15)">💰</div>
+        <div><div class="perk-title">Harga Terbaik</div><div class="perk-desc">Penawaran eksklusif setiap minggu. Member baru diskon 10% untuk pembelian pertama.</div></div>
+      </div>
+      <div class="perk-item">
+        <div class="perk-icon" style="background:rgba(239,68,68,0.1)">🎧</div>
+        <div><div class="perk-title">Support 24/7</div><div class="perk-desc">Tim kami siap membantu kapan saja via live chat, email, dan WhatsApp.</div></div>
+      </div>
+      <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="display:flex">{% for e in ['🧑','👩','🧑‍💻','👨‍🎨','👩‍💼'] %}<div style="width:30px;height:30px;border-radius:50%;background:var(--surface-alt);border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;font-size:0.8rem;{% if not loop.first %}margin-left:-8px{% endif %}">{{ e }}</div>{% endfor %}</div>
+          <div><div style="font-size:0.82rem;font-weight:600">8.200+ pengguna aktif</div><div style="font-size:0.72rem;color:var(--text-muted)">bergabung bulan ini</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_script %}
+<script>
+  const pwInput = document.getElementById('passwordInput');
+  const confirmInput = document.getElementById('confirmInput');
+  const usernameInput = document.getElementById('usernameInput');
+  const emailInput = document.getElementById('emailInput');
+
+  pwInput.addEventListener('input', () => {
+    const v = pwInput.value, fill = document.getElementById('strengthFill'), lbl = document.getElementById('strengthLabel');
+    let s = 0;
+    if (v.length >= 6) s++; if (v.length >= 10) s++; if (/[A-Z]/.test(v)) s++; if (/[0-9]/.test(v)) s++; if (/[^a-zA-Z0-9]/.test(v)) s++;
+    const lvls = [[0,'var(--border)',''], [20,'var(--danger)','🔴 Sangat lemah'], [40,'#F97316','🟠 Lemah'], [65,'var(--gold)','🟡 Cukup'], [85,'#84CC16','🟢 Kuat'], [100,'var(--success)','💪 Sangat Kuat']];
+    const l = lvls[s] || lvls[0];
+    fill.style.width = l[0]+'%'; fill.style.background = l[1]; lbl.textContent = l[2]; lbl.style.color = l[1];
+  });
+
+  confirmInput.addEventListener('input', () => {
+    const h = document.getElementById('matchHint');
+    if (!confirmInput.value) { h.textContent = ''; return; }
+    if (confirmInput.value === pwInput.value) { h.textContent = '✅ Password cocok'; h.style.color = 'var(--success)'; }
+    else { h.textContent = '❌ Tidak cocok'; h.style.color = 'var(--danger)'; }
+  });
+
+  [usernameInput, emailInput, pwInput].forEach(el => el.addEventListener('input', () => {
+    const u = usernameInput.value.trim().length >= 3, e = emailInput.value.includes('@'), p = pwInput.value.length >= 6;
+    document.getElementById('dot1').className = 'step-dot' + (u ? ' done' : ' active');
+    document.getElementById('dot2').className = 'step-dot' + (e ? ' done' : (u ? ' active' : ''));
+    document.getElementById('dot3').className = 'step-dot' + (p ? ' done' : (e ? ' active' : ''));
+  }));
+
+  document.querySelector('form').addEventListener('submit', e => {
+    if (!document.getElementById('terms').checked) { e.preventDefault(); alert('Harap centang persetujuan Syarat & Ketentuan.'); }
+    else if (confirmInput.value !== pwInput.value) { e.preventDefault(); confirmInput.focus(); }
+  });
+</script>
+{% endblock %}

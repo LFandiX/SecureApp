@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Pesanan Berhasil #{{ order['id'] }} — IBDA3202 Store{% endblock %}
+{% block extra_style %}
+@keyframes checkPop { 0%{transform:scale(0);opacity:0} 60%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }
+.check-circle { width: 80px; height: 80px; background: rgba(34,197,94,0.15); border: 2px solid rgba(34,197,94,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; animation: checkPop 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container" style="max-width:640px">
+    <div class="text-center mb-4">
+      <div class="check-circle">✅</div>
+      <h1 style="font-size:1.8rem;font-weight:700;margin-bottom:0.5rem">Pesanan Berhasil!</h1>
+      <p style="color:var(--text-muted);font-size:0.9rem">
+        Lisensi digital Anda akan dikirim ke email dalam beberapa menit.
+      </p>
+    </div>
+
+    <!-- Order card -->
+    <div class="surface-box mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 style="font-size:0.95rem;font-weight:700">Detail Pesanan</h3>
+        <span style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:6px">
+          #{{ "%05d"|format(order['id']) }}
+        </span>
+      </div>
+
+      {% set icons = {'Software':'💻','Security':'🔐','Education':'🎓','Design':'🎨','OS':'🖥️','Engineering':'⚙️','Developer Tools':'🛠️','Productivity':'⚡'} %}
+      {% for item in items %}
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:44px;height:44px;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📦</div>
+        <div class="flex-grow-1">
+          <div style="font-weight:600;font-size:0.88rem">{{ item['name'] }}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">×{{ item['quantity'] }} unit</div>
+        </div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.85rem;font-weight:700;color:var(--gold)">
+          Rp {{ "{:,.0f}".format(item['unit_price'] * item['quantity']).replace(',','.') }}
+        </div>
+      </div>
+      {% endfor %}
+
+      <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:0.5rem">
+        <div class="d-flex justify-content-between mb-1">
+          <span style="font-size:0.82rem;color:var(--text-muted)">Status</span>
+          <span style="background:rgba(245,166,35,0.15);color:var(--gold);padding:2px 10px;border-radius:100px;font-size:0.72rem;font-weight:700">
+            ⏳ Diproses
+          </span>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span style="font-size:0.82rem;color:var(--text-muted)">Tanggal</span>
+          <span style="font-size:0.82rem">{{ order['created_at'][:16] }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center" style="border-top:1px solid var(--border);padding-top:0.8rem;margin-top:0.8rem">
+          <span style="font-weight:700">Total Dibayar</span>
+          <span style="font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:var(--gold)">
+            Rp {{ "{:,.0f}".format(order['total']).replace(',','.') }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next steps -->
+    <div class="surface-box mb-4" style="background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.2)">
+      <h3 style="font-size:0.9rem;font-weight:700;color:var(--success);margin-bottom:1rem">
+        <i class="bi bi-list-ol me-2"></i>Langkah Selanjutnya
+      </h3>
+      <div class="d-flex flex-column gap-2">
+        {% for step, desc in [
+          ('Cek email Anda', 'Instruksi pembayaran telah dikirim ke email terdaftar'),
+          ('Selesaikan pembayaran', 'Lakukan transfer sesuai jumlah yang tertera dalam 1x24 jam'),
+          ('Terima lisensi', 'Kunci aktivasi dikirim otomatis setelah pembayaran dikonfirmasi')
+        ] %}
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="width:22px;height:22px;border-radius:50%;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:var(--success);flex-shrink:0;margin-top:1px">{{ loop.index }}</div>
+          <div>
+            <div style="font-size:0.82rem;font-weight:600">{{ step }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">{{ desc }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="/dashboard" class="btn-accent"><i class="bi bi-speedometer2"></i> Lihat Dashboard</a>
+      <a href="/products" class="btn-ghost"><i class="bi bi-grid-fill"></i> Belanja Lagi</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

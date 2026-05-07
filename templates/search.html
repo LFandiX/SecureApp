@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Hasil Pencarian "{{ query }}" — IBDA3202 Store{% endblock %}
+{% block extra_style %}
+.search-header { background:var(--surface); border-bottom:1px solid var(--border); padding:2rem 0; }
+.search-bar-large { background:var(--surface-alt); border:1px solid var(--border); color:var(--text); border-radius:14px; padding:0.9rem 1.2rem; font-size:0.95rem; font-family:'Sora',sans-serif; width:100%; transition:all 0.3s; }
+.search-bar-large:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.search-bar-large::placeholder { color:var(--text-muted); }
+{% endblock %}
+{% block content %}
+<div class="search-header">
+  <div class="container">
+    <form action="/search" method="GET">
+      <div class="d-flex gap-3">
+        <div class="position-relative flex-grow-1">
+          <i class="bi bi-search position-absolute" style="top:50%;transform:translateY(-50%);left:1rem;color:var(--text-muted);font-size:0.9rem"></i>
+          <input type="text" name="q" class="search-bar-large" style="padding-left:2.8rem" value="{{ query }}" placeholder="Cari produk software, lisensi..." maxlength="100" autofocus />
+        </div>
+        <button type="submit" class="btn-accent px-4"><i class="bi bi-search me-1"></i> Cari</button>
+      </div>
+      {% if query %}
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.5rem">
+        Menampilkan <span style="color:var(--accent);font-weight:700">{{ results|length }}</span> hasil untuk "<span style="color:var(--accent)">{{ query }}</span>"
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+    <!-- [S3] Tidak ada error DB yang ditampilkan ke user -->
+    <!-- [S8] Error disembunyikan dari user, dicatat di log saja -->
+
+    {% if query and results %}
+    {% set icons = {'Software':'💻','Security':'🔐','Education':'🎓','Design':'🎨','OS':'🖥️','Engineering':'⚙️','Developer Tools':'🛠️','Productivity':'⚡'} %}
+    <div class="row g-4">
+      {% for product in results %}
+      <div class="col-sm-6 col-lg-3 fade-up" style="animation-delay:{{ loop.index0 * 0.07 }}s">
+        <div class="card-product d-flex flex-column">
+          <div class="product-icon">{{ icons.get(product['category'],'📦') }}</div>
+          <div class="product-category">{{ product['category'] }}</div>
+          <div class="product-name">{{ product['name'] }}</div>
+          <div class="product-desc">{{ product['description'][:90] }}{% if product['description']|length > 90 %}...{% endif %}</div>
+          <div class="mt-auto">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="product-price">Rp {{ "{:,.0f}".format(product['price']).replace(',','.') }}</div>
+            </div>
+            <a href="/product/{{ product['id'] }}" class="btn-accent w-100 justify-content-center">Lihat Detail</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% elif query and not results %}
+    <div class="text-center py-5">
+      <div style="font-size:3rem;margin-bottom:1rem">🔍</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.5rem">Produk Tidak Ditemukan</h3>
+      <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1.5rem">Tidak ada hasil untuk "<strong>{{ query }}</strong>". Coba kata kunci lain.</p>
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        <a href="/search?q=Adobe" class="tag">Adobe</a>
+        <a href="/search?q=Microsoft" class="tag">Microsoft</a>
+        <a href="/search?q=Security" class="tag">Security</a>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+      <div style="font-size:3rem;margin-bottom:1rem">💡</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.5rem">Cari Produk Apa?</h3>
+      <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1.5rem">Masukkan nama software, lisensi, atau kategori.</p>
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        <a href="/search?q=Adobe" class="tag">Adobe</a>
+        <a href="/search?q=Microsoft" class="tag">Microsoft</a>
+        <a href="/search?q=Antivirus" class="tag">Antivirus</a>
+        <a href="/search?q=VPN" class="tag">VPN</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

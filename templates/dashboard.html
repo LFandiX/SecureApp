@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — IBDA3202 Store{% endblock %}
+{% block extra_style %}
+.dash-hero { background: linear-gradient(135deg,rgba(108,99,255,0.1) 0%,transparent 60%); border-bottom:1px solid var(--border); padding:2.5rem 0; }
+.stat-mini { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.2rem; display:flex; align-items:center; gap:12px; }
+.stat-mini-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+.quick-link { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem; text-align:center; text-decoration:none; color:var(--text); transition:all 0.2s; display:block; }
+.quick-link:hover { border-color:var(--accent); color:var(--text); transform:translateY(-2px); }
+{% endblock %}
+{% block content %}
+<div class="dash-hero">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="section-eyebrow">Dashboard</div>
+        <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.2rem">Halo, {{ current_user.username }}! 👋</h1>
+        <p style="color:var(--text-muted);font-size:0.85rem">
+          {% if current_user.role == 'admin' %}
+            Masuk sebagai <span style="color:var(--gold);font-weight:600">Administrator</span>
+          {% else %}Akun pengguna aktif{% endif %}
+        </p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        {% if current_user.role == 'admin' %}
+        <a href="/admin" class="btn-gold"><i class="bi bi-shield-lock-fill"></i> Panel Admin</a>
+        {% endif %}
+        <a href="/cart" class="btn-ghost">
+          <i class="bi bi-bag-fill"></i> Keranjang
+          {% if cart_count > 0 %}<span style="background:var(--accent);color:#fff;border-radius:100px;padding:1px 7px;font-size:0.7rem;font-weight:700">{{ cart_count }}</span>{% endif %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-md-3">
+        <div class="stat-mini fade-up">
+          <div class="stat-mini-icon" style="background:var(--accent-soft)">🛒</div>
+          <div><div style="font-family:'Space Mono',monospace;font-weight:700;font-size:1.2rem">{{ orders|length }}</div><div style="font-size:0.75rem;color:var(--text-muted)">Total Pesanan</div></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div class="stat-mini fade-up fade-up-1">
+          <div class="stat-mini-icon" style="background:var(--gold-soft)">💰</div>
+          <div>
+            <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:1rem">
+              Rp {{ "{:,.0f}".format(orders|sum(attribute='total')).replace(',','.') if orders else '0' }}
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Total Belanja</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div class="stat-mini fade-up fade-up-2">
+          <div class="stat-mini-icon" style="background:rgba(34,197,94,0.15)">✅</div>
+          <div><div style="font-family:'Space Mono',monospace;font-weight:700;font-size:1.2rem">{{ orders|selectattr('status','eq','completed')|list|length }}</div><div style="font-size:0.75rem;color:var(--text-muted)">Selesai</div></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div class="stat-mini fade-up fade-up-3">
+          <div class="stat-mini-icon" style="background:rgba(245,166,35,0.15)">⏳</div>
+          <div><div style="font-family:'Space Mono',monospace;font-weight:700;font-size:1.2rem">{{ orders|selectattr('status','eq','pending')|list|length }}</div><div style="font-size:0.75rem;color:var(--text-muted)">Diproses</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3"><a href="/products" class="quick-link fade-up"><span style="font-size:1.5rem;display:block;margin-bottom:0.5rem">🛍️</span><div style="font-size:0.85rem;font-weight:600">Belanja</div></a></div>
+      <div class="col-6 col-md-3"><a href="/cart" class="quick-link fade-up fade-up-1"><span style="font-size:1.5rem;display:block;margin-bottom:0.5rem">🛒</span><div style="font-size:0.85rem;font-weight:600">Keranjang</div></a></div>
+      <div class="col-6 col-md-3"><a href="/profile" class="quick-link fade-up fade-up-2"><span style="font-size:1.5rem;display:block;margin-bottom:0.5rem">👤</span><div style="font-size:0.85rem;font-weight:600">Profil</div></a></div>
+      <div class="col-6 col-md-3"><a href="/logout" class="quick-link fade-up fade-up-3"><span style="font-size:1.5rem;display:block;margin-bottom:0.5rem">🚪</span><div style="font-size:0.85rem;font-weight:600">Keluar</div></a></div>
+    </div>
+
+    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:1.2rem"><i class="bi bi-clock-history me-2" style="color:var(--accent)"></i>Riwayat Pesanan</h2>
+    <div class="surface-box">
+      {% if orders %}
+      <div class="table-responsive">
+        <table class="table-dark-custom">
+          <thead><tr><th>#</th><th>Produk</th><th>Item</th><th>Total</th><th>Status</th><th>Tanggal</th></tr></thead>
+          <tbody>
+            {% for o in orders %}
+            <tr>
+              <td><span style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-muted)">#{{ "%05d"|format(o['id']) }}</span></td>
+              <td style="font-size:0.82rem;max-width:200px">{{ o['product_names'][:50] }}{% if o['product_names']|length > 50 %}...{% endif %}</td>
+              <td style="font-size:0.82rem">{{ o['total_items'] }} item</td>
+              <td style="font-family:'Space Mono',monospace;color:var(--gold);font-size:0.85rem">Rp {{ "{:,.0f}".format(o['total']).replace(',','.') }}</td>
+              <td>
+                {% if o['status'] == 'completed' %}<span style="background:rgba(34,197,94,0.15);color:#22C55E;padding:2px 8px;border-radius:100px;font-size:0.7rem;font-weight:600">Selesai</span>
+                {% else %}<span style="background:rgba(245,166,35,0.15);color:var(--gold);padding:2px 8px;border-radius:100px;font-size:0.7rem;font-weight:600">Diproses</span>{% endif %}
+              </td>
+              <td style="font-size:0.75rem;color:var(--text-muted)">{{ o['created_at'][:16] if o['created_at'] else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-4">
+        <div style="font-size:2.5rem;margin-bottom:0.8rem">📭</div>
+        <p style="color:var(--text-muted);font-size:0.875rem">Belum ada pesanan.</p>
+        <a href="/products" class="btn-accent mt-2"><i class="bi bi-bag-plus-fill"></i> Belanja Sekarang</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

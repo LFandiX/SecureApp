@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}IBDA3202 Store — Platform Produk Digital Terbaik{% endblock %}
+{% block extra_style %}
+.hero{padding:5rem 0 4rem;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;top:50%;right:-100px;transform:translateY(-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(108,99,255,0.12) 0%,transparent 65%);pointer-events:none}
+.hero-title{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.15;letter-spacing:-1px;margin-bottom:1.2rem}
+.hero-title span{background:linear-gradient(135deg,var(--accent) 0%,#A78BFA 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.5rem;text-align:center}
+.stat-num{font-family:'Space Mono',monospace;font-size:1.5rem;font-weight:700;color:var(--accent)}
+.stat-label{font-size:0.75rem;color:var(--text-muted);margin-top:2px}
+.trust-badge{display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text-muted)}
+{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <div class="section-eyebrow fade-up">✦ Platform Digital Terpercaya #1</div>
+        <h1 class="hero-title fade-up fade-up-1">Semua Kebutuhan<br><span>Software & Lisensi</span><br>Digital Anda</h1>
+        <p class="fade-up fade-up-2" style="color:var(--text-muted);font-size:0.95rem;line-height:1.7;max-width:480px;margin-bottom:2rem">Dapatkan lisensi resmi Adobe, Microsoft, dan ratusan produk digital premium lainnya dengan harga terbaik dan pengiriman instan.</p>
+        <div class="d-flex gap-3 flex-wrap fade-up fade-up-3">
+          <a href="/products" class="btn-accent"><i class="bi bi-grid-fill"></i> Jelajahi Produk</a>
+          <a href="/search?q=" class="btn-ghost"><i class="bi bi-search"></i> Cari Sekarang</a>
+        </div>
+        <div class="d-flex gap-4 mt-4 fade-up fade-up-4">
+          <div class="trust-badge"><i class="bi bi-shield-check-fill" style="color:var(--success)"></i> 100% Lisensi Resmi</div>
+          <div class="trust-badge"><i class="bi bi-lightning-fill" style="color:var(--gold)"></i> Pengiriman Instan</div>
+          <div class="trust-badge"><i class="bi bi-headset" style="color:var(--accent)"></i> Support 24/7</div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="row g-3">
+          {% for val,lbl in [('12K+','Produk Terjual'),('4.9★','Rating Pengguna'),('500+','Jenis Produk'),('8K+','Pelanggan Aktif')] %}
+          <div class="col-6"><div class="stat-card fade-up fade-up-{{ loop.index }}"><div class="stat-num">{{ val }}</div><div class="stat-label">{{ lbl }}</div></div></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-4"><div class="container"><div class="d-flex align-items-center gap-3 flex-wrap">
+  <span style="font-size:0.8rem;color:var(--text-muted);font-weight:600">Kategori:</span>
+  <a href="/products" class="tag active">Semua</a>
+  {% for cat in categories %}<a href="/products?category={{ cat['category'] }}" class="tag">{{ cat['category'] }}</a>{% endfor %}
+</div></div></section>
+
+<section class="py-5"><div class="container">
+  <div class="d-flex align-items-end justify-content-between mb-4">
+    <div><div class="section-eyebrow">Pilihan Editor</div><h2 class="section-title">Produk Unggulan</h2></div>
+    <a href="/products" class="btn-ghost">Lihat Semua <i class="bi bi-arrow-right"></i></a>
+  </div>
+  {% set icons={'Software':'💻','Security':'🔐','Education':'🎓','Design':'🎨','OS':'🖥️','Engineering':'⚙️','Developer Tools':'🛠️','Productivity':'⚡'} %}
+  <div class="row g-4">
+    {% for p in products %}
+    <div class="col-sm-6 col-lg-3 fade-up" style="animation-delay:{{ loop.index0*0.08 }}s">
+      <div class="card-product d-flex flex-column">
+        <div class="product-icon">{{ icons.get(p['category'],'📦') }}</div>
+        <div class="product-category">{{ p['category'] }}</div>
+        <div class="product-name">{{ p['name'] }}</div>
+        <div class="product-desc">{{ p['description'][:80] }}{% if p['description']|length>80 %}...{% endif %}</div>
+        <div class="mt-auto">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="product-price">Rp {{ "{:,.0f}".format(p['price']).replace(',','.') }}</div>
+            <div class="product-stock"><i class="bi bi-box2" style="color:var(--success)"></i> {{ p['stock'] }}</div>
+          </div>
+          <a href="/product/{{ p['id'] }}" class="btn-accent w-100 justify-content-center">Lihat Detail</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div></section>
+
+<section class="py-5"><div class="container">
+  <div class="surface-box text-center" style="background:linear-gradient(135deg,rgba(108,99,255,0.15) 0%,rgba(167,139,250,0.08) 100%);border-color:rgba(108,99,255,0.3);padding:3rem 2rem">
+    <div class="section-eyebrow">Bergabung Sekarang</div>
+    <h2 class="section-title mb-2">Mulai Belanja Produk Digital</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:2rem">Daftarkan akun Anda dan nikmati berbagai penawaran eksklusif setiap minggu.</p>
+    <!-- <a href="/register" class="btn-accent"><i class="bi bi-person-plus-fill"></i> Buat Akun Gratis</a> -->
+  </div>
+</div></section>
+{% endblock %}

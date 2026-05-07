@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Tentang Kami — IBDA3202 Store{% endblock %}
+{% block content %}
+<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:3rem 0">
+  <div class="container">
+    <div class="section-eyebrow">Tentang Kami</div>
+    <h1 class="section-title">Platform Digital Terpercaya</h1>
+  </div>
+</div>
+<section class="py-5"><div class="container" style="max-width:720px">
+  <div class="surface-box mb-4">
+    <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;margin-bottom:1.2rem">
+      <strong style="color:var(--text)">IBDA3202 Store</strong> adalah platform e-commerce yang berfokus pada distribusi produk software dan lisensi digital premium di Indonesia. Berdiri sejak 2022, kami telah melayani lebih dari 8.000 pelanggan aktif dengan tingkat kepuasan tertinggi di industrinya.
+    </p>
+    <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;margin-bottom:1.5rem">
+      Misi kami adalah menyediakan akses mudah dan terjangkau ke perangkat lunak original dan berlisensi resmi, sehingga setiap individu dan bisnis dapat bekerja dengan alat terbaik tanpa hambatan.
+    </p>
+    <div class="d-flex gap-4 mt-3 flex-wrap">
+      {% for val,lbl,color in [('8K+','Pelanggan Aktif','var(--accent)'),('500+','Jenis Produk','var(--gold)'),('4.9★','Rating Pengguna','var(--success)')] %}
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:1.5rem;font-weight:700;color:{{ color }}">{{ val }}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">{{ lbl }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="surface-box" style="background:rgba(34,197,94,0.04);border-color:rgba(34,197,94,0.2)">
+    <h3 style="font-size:0.95rem;font-weight:700;color:var(--success);margin-bottom:1rem">
+      <i class="bi bi-shield-check-fill me-2"></i>Komitmen Keamanan Kami
+    </h3>
+    <div class="d-flex flex-column gap-2">
+      {% for item in ['Seluruh transaksi dilindungi enkripsi SSL/TLS',
+                      'Data pengguna tidak pernah dijual ke pihak ketiga',
+                      'Sistem autentikasi menggunakan JWT & password hashing',
+                      'Monitoring keamanan 24/7 dengan SIEM terintegrasi',
+                      'Kebijakan privasi transparan sesuai regulasi PDPA Indonesia'] %}
+      <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--text-muted)">
+        <i class="bi bi-check-circle-fill" style="color:var(--success);flex-shrink:0"></i> {{ item }}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div></section>
+{% endblock %}

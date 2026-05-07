@@ -1,0 +1,7 @@
+__pycache__/
+*.db
+.env
+vnv/
+.venv/
+*.log
+static/uploads/*

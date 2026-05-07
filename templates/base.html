@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}IBDA3202 Store{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0A0A0F; --surface: #13131A; --surface-alt: #1C1C27;
+      --border: #2A2A3D; --accent: #6C63FF; --accent-soft: rgba(108,99,255,0.15);
+      --accent-glow: rgba(108,99,255,0.4); --gold: #F5A623; --gold-soft: rgba(245,166,35,0.15);
+      --text: #E8E8F0; --text-muted: #8B8BA7; --success: #22C55E;
+      --danger: #EF4444; --radius: 12px; --radius-lg: 20px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--primary); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; top: -200px; left: -200px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(108,99,255,0.07) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+
+    /* Navbar */
+    .navbar { background: rgba(13,13,20,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
+    .navbar-brand { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.1rem; color: var(--text) !important; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+    .brand-badge { background: var(--accent); color: #fff; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-family: 'Space Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
+    .secure-badge { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: var(--success); font-size: 0.58rem; padding: 2px 6px; border-radius: 4px; font-family: 'Space Mono', monospace; letter-spacing: 1px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 3px; }
+    .nav-link { color: var(--text-muted) !important; font-size: 0.875rem; font-weight: 500; padding: 0.4rem 0.9rem !important; border-radius: 8px; transition: all 0.2s; }
+    .nav-link:hover, .nav-link.active { color: var(--text) !important; background: var(--surface-alt); }
+    .nav-search { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 0.45rem 1rem; font-size: 0.85rem; font-family: 'Sora', sans-serif; width: 220px; transition: all 0.3s; }
+    .nav-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: var(--surface-alt); }
+    .nav-search::placeholder { color: var(--text-muted); }
+    .btn-nav-search { background: var(--accent); border: none; color: #fff; border-radius: 8px; padding: 0.45rem 0.9rem; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    .btn-nav-search:hover { background: #5A52E0; }
+    .avatar-pill { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text); border-radius: 100px; padding: 0.35rem 0.9rem; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s; }
+    .avatar-pill:hover { border-color: var(--accent); color: var(--text); }
+    .avatar-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+
+    /* Cart badge */
+    .cart-btn { position: relative; background: var(--surface-alt); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 0.35rem 0.9rem; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s; }
+    .cart-btn:hover { border-color: var(--accent); color: var(--text); }
+    .cart-badge { position: absolute; top: -6px; right: -6px; background: var(--accent); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.62rem; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: 'Space Mono', monospace; border: 2px solid var(--primary); }
+
+    /* Buttons */
+    .btn-accent { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 0.6rem 1.4rem; font-size: 0.85rem; font-weight: 600; font-family: 'Sora', sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-accent:hover { background: #5A52E0; color: #fff; box-shadow: 0 8px 20px var(--accent-glow); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 1.4rem; font-size: 0.85rem; font-weight: 500; font-family: 'Sora', sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+    .btn-gold { background: var(--gold); color: #0A0A0F; border: none; border-radius: 10px; padding: 0.6rem 1.4rem; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-gold:hover { opacity: 0.88; }
+    .btn-danger { background: rgba(239,68,68,0.15); color: #EF4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Sora', sans-serif; }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); color: #EF4444; }
+
+    /* Cards */
+    .card-product { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; height: 100%; }
+    .card-product::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0; transition: opacity 0.3s; }
+    .card-product:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--accent-soft); }
+    .card-product:hover::before { opacity: 1; }
+    .product-icon { width: 52px; height: 52px; background: var(--accent-soft); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
+    .product-category { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); font-weight: 600; margin-bottom: 0.4rem; }
+    .product-name { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; line-height: 1.4; }
+    .product-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem; }
+    .product-price { font-family: 'Space Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--gold); }
+    .product-stock { font-size: 0.72rem; color: var(--text-muted); }
+
+    /* Forms */
+    .form-control-dark { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 0.875rem; font-family: 'Sora', sans-serif; width: 100%; transition: all 0.2s; }
+    .form-control-dark:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: var(--surface-alt); color: var(--text); }
+    .form-control-dark::placeholder { color: var(--text-muted); }
+    .form-label-dark { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.5rem; display: block; }
+
+    /* Alerts */
+    .alert-dark { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #FCA5A5; border-radius: var(--radius); padding: 0.85rem 1.1rem; font-size: 0.85rem; }
+    .alert-success-dark { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86EFAC; border-radius: var(--radius); padding: 0.85rem 1.1rem; font-size: 0.85rem; }
+    .alert-info-dark { background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3); color: #A5B4FC; border-radius: var(--radius); padding: 0.85rem 1.1rem; font-size: 0.85rem; }
+
+    /* Sections */
+    .section-eyebrow { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); font-weight: 700; margin-bottom: 0.5rem; }
+    .section-title { font-size: 1.8rem; font-weight: 700; color: var(--text); letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+    .surface-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; }
+    .tag { display: inline-flex; align-items: center; background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-muted); border-radius: 100px; padding: 0.25rem 0.75rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .tag:hover, .tag.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+    /* Table */
+    .table-dark-custom { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .table-dark-custom th { background: var(--surface-alt); color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); font-weight: 600; }
+    .table-dark-custom td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    .table-dark-custom tr:hover td { background: var(--surface-alt); }
+    .table-dark-custom tr:last-child td { border-bottom: none; }
+
+    /* Footer */
+    footer { background: var(--surface); border-top: 1px solid var(--border); padding: 2.5rem 0 1.5rem; margin-top: 5rem; }
+    .footer-brand { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); font-size: 1rem; }
+    .footer-link { color: var(--text-muted); font-size: 0.82rem; text-decoration: none; transition: color 0.2s; }
+    .footer-link:hover { color: var(--text); }
+    .footer-copy { color: var(--text-muted); font-size: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.2rem; margin-top: 1.5rem; }
+
+    /* Input icon wrapper */
+    .input-icon-wrap { position: relative; }
+    .input-icon-wrap .icon-left { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
+    .input-icon-wrap .form-control-dark { padding-left: 2.4rem; }
+
+    /* Animations */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-up { animation: fadeUp 0.5s ease both; }
+    .fade-up-1 { animation-delay: 0.08s; }
+    .fade-up-2 { animation-delay: 0.16s; }
+    .fade-up-3 { animation-delay: 0.24s; }
+    .fade-up-4 { animation-delay: 0.32s; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--primary); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    {% block extra_style %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <div class="d-flex align-items-center gap-3 w-100">
+
+      <a class="navbar-brand me-auto" href="/">
+        <i class="bi bi-box-seam-fill" style="color:var(--accent)"></i>
+        IBDA3202
+        <span class="brand-badge">Store</span>
+        <span class="secure-badge"><i class="bi bi-shield-check-fill"></i> Secure</span>
+      </a>
+
+      <form class="d-none d-md-flex align-items-center gap-2" action="/search" method="GET">
+        <input class="nav-search" type="text" name="q" placeholder="Cari produk digital..." maxlength="100" />
+        <button class="btn-nav-search" type="submit"><i class="bi bi-search"></i></button>
+      </form>
+
+      <div class="d-none d-md-flex align-items-center gap-1">
+        <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Beranda</a>
+        <a href="/products" class="nav-link {% if request.path == '/products' %}active{% endif %}">Produk</a>
+        <a href="/about" class="nav-link">Tentang</a>
+      </div>
+
+      {% if current_user %}
+        <!-- Cart icon with badge -->
+        <a href="/cart" class="cart-btn">
+          <i class="bi bi-bag-fill"></i>
+          {% if cart_count > 0 %}
+            <span class="cart-badge">{{ cart_count }}</span>
+          {% endif %}
+        </a>
+        <a href="/dashboard" class="avatar-pill">
+          <span class="avatar-dot"></span>
+          {{ current_user.username }}
+          {% if current_user.role == 'admin' %}
+            <span class="brand-badge" style="background:var(--gold);color:#000">Admin</span>
+          {% endif %}
+        </a>
+        <a href="/logout" class="btn-ghost" style="padding:0.35rem 0.9rem;font-size:0.8rem">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      {% else %}
+        <a href="/register" class="btn-ghost" style="padding:0.4rem 1.1rem;font-size:0.82rem">Daftar</a>
+        <a href="/login" class="btn-accent" style="padding:0.4rem 1.1rem;font-size:0.82rem">
+          <i class="bi bi-person-fill"></i> Masuk
+        </a>
+      {% endif %}
+
+    </div>
+  </div>
+</nav>
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="footer-brand mb-2">
+          <i class="bi bi-box-seam-fill" style="color:var(--accent)"></i> IBDA3202 Store
+        </div>
+        <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.7">
+          Platform terpercaya untuk produk software dan lisensi digital terbaik di Indonesia.
+        </p>
+      </div>
+      <div class="col-md-2">
+        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:700;margin-bottom:1rem">Navigasi</div>
+        <div class="d-flex flex-column gap-2">
+          <a href="/" class="footer-link">Beranda</a>
+          <a href="/products" class="footer-link">Semua Produk</a>
+          <a href="/about" class="footer-link">Tentang Kami</a>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:700;margin-bottom:1rem">Akun</div>
+        <div class="d-flex flex-column gap-2">
+          <a href="/login" class="footer-link">Masuk</a>
+          <a href="/dashboard" class="footer-link">Dashboard</a>
+          <a href="/cart" class="footer-link">Keranjang</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:700;margin-bottom:1rem">Kategori</div>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="/products?category=Software" class="tag">Software</a>
+          <a href="/products?category=Security" class="tag">Security</a>
+          <a href="/products?category=Education" class="tag">Education</a>
+          <a href="/products?category=Design" class="tag">Design</a>
+          <a href="/products?category=OS" class="tag">OS</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copy d-flex justify-content-between align-items-center">
+      <span>© 2025 IBDA3202 Store. All rights reserved.</span>
+      <span style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--success)">
+        <i class="bi bi-shield-check-fill me-1"></i>Secure Edition v2.5.0
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_script %}{% endblock %}
+</body>
+</html>

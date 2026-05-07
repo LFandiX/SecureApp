@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Semua Produk — IBDA3202 Store{% endblock %}
+{% block content %}
+<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:2rem 0">
+  <div class="container">
+    <div class="section-eyebrow">Katalog</div>
+    <h1 class="section-title">Semua Produk Digital</h1>
+    <div class="d-flex gap-2 flex-wrap mt-3">
+      <a href="/products" class="tag {% if not selected %}active{% endif %}">Semua</a>
+      {% for cat in categories %}
+      <a href="/products?category={{ cat['category'] }}" class="tag {% if selected==cat['category'] %}active{% endif %}">{{ cat['category'] }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<section class="py-5"><div class="container">
+  {% set icons={'Software':'💻','Security':'🔐','Education':'🎓','Design':'🎨','OS':'🖥️','Engineering':'⚙️','Developer Tools':'🛠️','Productivity':'⚡'} %}
+  {% if products %}
+  <div class="row g-4">
+    {% for p in products %}
+    <div class="col-sm-6 col-lg-3 fade-up" style="animation-delay:{{ loop.index0*0.06 }}s">
+      <div class="card-product d-flex flex-column">
+        <div class="product-icon">{{ icons.get(p['category'],'📦') }}</div>
+        <div class="product-category">{{ p['category'] }}</div>
+        <div class="product-name">{{ p['name'] }}</div>
+        <div class="product-desc">{{ p['description'][:80] }}{% if p['description']|length>80 %}...{% endif %}</div>
+        <div class="mt-auto">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="product-price">Rp {{ "{:,.0f}".format(p['price']).replace(',','.') }}</div>
+            <div class="product-stock"><i class="bi bi-box2" style="color:var(--success)"></i> {{ p['stock'] }}</div>
+          </div>
+          <a href="/product/{{ p['id'] }}" class="btn-accent w-100 justify-content-center">Lihat Detail</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <div style="font-size:3rem;margin-bottom:1rem">📭</div>
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">Tidak Ada Produk</h3>
+    <p style="color:var(--text-muted);font-size:0.875rem">Belum ada produk di kategori ini.</p>
+    <a href="/products" class="btn-ghost mt-3"><i class="bi bi-arrow-left me-1"></i>Lihat Semua</a>
+  </div>
+  {% endif %}
+</div></section>
+{% endblock %}

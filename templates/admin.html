@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel — IBDA3202 Store{% endblock %}
+
+{% block extra_style %}
+.admin-header { background:linear-gradient(135deg,rgba(245,166,35,0.1) 0%,transparent 60%); border-bottom:1px solid var(--border); padding:2rem 0; }
+.kpi-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem 1.5rem; }
+.kpi-num { font-family:'Space Mono',monospace; font-size:1.6rem; font-weight:700; color:var(--gold); }
+.kpi-label { font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
+.revenue-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; margin-top:4px; }
+.revenue-bar-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--gold)); border-radius:3px; }
+.salary-badge { font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--success); background:rgba(34,197,94,0.1); padding:3px 8px; border-radius:6px; }
+
+/* ── Tab nav ── */
+.tab-nav { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:4px; margin-bottom:1.5rem; }
+.tab-btn { flex:1; background:none; border:none; color:var(--text-muted); font-family:'Sora',sans-serif; font-size:0.82rem; font-weight:600; padding:0.55rem 0.8rem; border-radius:8px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; }
+.tab-btn:hover { color:var(--text); background:var(--surface-alt); }
+.tab-btn.active { background:var(--surface-alt); color:var(--text); border:1px solid var(--border); }
+.tab-btn.active i { color:var(--gold); }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+
+/* ── Status badge ── */
+.status-badge { padding:2px 10px; border-radius:100px; font-size:0.7rem; font-weight:700; display:inline-block; }
+.status-pending    { background:rgba(245,166,35,0.15); color:var(--gold); }
+.status-completed  { background:rgba(34,197,94,0.15);  color:var(--success); }
+.status-cancelled  { background:rgba(239,68,68,0.12);  color:var(--danger); }
+
+/* ── Product row ── */
+.product-row { display:flex; align-items:center; gap:12px; padding:0.9rem 1rem; border-bottom:1px solid var(--border); transition:background 0.15s; }
+.product-row:last-child { border-bottom:none; }
+.product-row:hover { background:var(--surface-alt); border-radius:var(--radius); }
+.product-row-icon { width:40px; height:40px; border-radius:10px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+.disabled-row { opacity:0.45; }
+
+/* ── Add product form ── */
+.add-form-card { background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.2); border-radius:var(--radius-lg); padding:1.5rem; }
+.form-row-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media(max-width:640px){ .form-row-grid { grid-template-columns:1fr; } }
+
+/* ── Transaction table scrollable ── */
+.trans-wrap { overflow-x:auto; }
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Admin Header ── -->
+<div class="admin-header">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:2px;color:var(--gold);font-weight:700;margin-bottom:0.3rem">🔑 Panel Administrasi</div>
+        <h1 style="font-size:1.4rem;font-weight:700;margin-bottom:0.2rem">Control Center</h1>
+        <p style="color:var(--text-muted);font-size:0.82rem">IBDA3202 Store — Sistem Manajemen Internal</p>
+      </div>
+      <a href="/dashboard" class="btn-ghost"><i class="bi bi-arrow-left"></i> Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<section class="py-4">
+  <div class="container">
+
+    <!-- ── KPI Cards ── -->
+    <div class="row g-3 mb-4">
+      {% for val,lbl,icon in [
+        (total_products, 'Total Produk',   'bi-box-seam-fill'),
+        (total_orders,   'Total Pesanan',  'bi-bag-fill'),
+        (users|length,   'Total Pengguna', 'bi-people-fill'),
+        ('Rp '~"{:,.0f}".format(total_revenue/1000000).replace(',','.')~'M', 'Revenue Selesai', 'bi-graph-up-arrow'),
+      ] %}
+      <div class="col-6 col-md-3">
+        <div class="kpi-card fade-up fade-up-{{ loop.index0 }}">
+          <i class="bi {{ icon }}" style="color:var(--gold);font-size:1.1rem;margin-bottom:0.4rem;display:block"></i>
+          <div class="kpi-num">{{ val }}</div>
+          <div class="kpi-label">{{ lbl }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ── Tab Navigation ── -->
+    <div class="tab-nav" id="adminTabs">
+      <button class="tab-btn" data-target="tab-overview"      onclick="switchTab(this)"><i class="bi bi-speedometer2"></i> Overview</button>
+      <button class="tab-btn" data-target="tab-transactions"  onclick="switchTab(this)"><i class="bi bi-receipt-cutoff"></i> Transaksi</button>
+      <button class="tab-btn" data-target="tab-products"      onclick="switchTab(this)"><i class="bi bi-box-seam-fill"></i> Kelola Produk</button>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         TAB 1 — OVERVIEW
+    ═══════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-overview">
+      <div class="row g-4">
+
+        <!-- Sales Report -->
+        <div class="col-lg-7">
+          <div class="surface-box h-100">
+            <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.2rem">
+              <i class="bi bi-bar-chart-fill me-2" style="color:var(--gold)"></i>Laporan Penjualan
+            </h3>
+            {% set max_rev = sales|map(attribute='revenue')|max if sales else 1 %}
+            {% for s in sales %}
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span style="font-size:0.82rem;font-weight:600">{{ s['month'] }}</span>
+                <div class="d-flex gap-3 align-items-center">
+                  <span style="font-size:0.72rem;color:var(--text-muted)">{{ s['orders_count'] }} order</span>
+                  <span style="font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--gold)">
+                    Rp {{ "{:,.0f}".format(s['revenue']/1000000).replace(',','.') }}M
+                  </span>
+                </div>
+              </div>
+              <div class="revenue-bar">
+                <div class="revenue-bar-fill" style="width:{{ (s['revenue']/max_rev*100)|int }}%"></div>
+              </div>
+              <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Top: {{ s['top_product'] }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Users -->
+        <div class="col-lg-5">
+          <div class="surface-box mb-4">
+            <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">
+              <i class="bi bi-people-fill me-2" style="color:var(--accent)"></i>Akun Pengguna
+            </h3>
+            <div class="table-responsive">
+              <table class="table-dark-custom">
+                <thead><tr><th>Username</th><th>Email</th><th>Role</th></tr></thead>
+                <tbody>
+                  {% for u in users %}
+                  <tr>
+                    <td style="font-weight:600">{{ u['username'] }}</td>
+                    <td style="font-size:0.75rem;color:var(--text-muted)">{{ u['email'] }}</td>
+                    <td>{% if u['role']=='admin' %}
+                      <span class="status-badge" style="background:rgba(245,166,35,0.15);color:var(--gold)">ADMIN</span>
+                    {% else %}
+                      <span class="status-badge" style="background:var(--surface-alt);color:var(--text-muted)">User</span>
+                    {% endif %}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Employees summary -->
+          <div class="surface-box">
+            <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">
+              <i class="bi bi-person-badge-fill me-2" style="color:var(--danger)"></i>
+              Data Karyawan <span style="font-size:0.7rem;color:var(--danger);font-weight:600">RAHASIA</span>
+            </h3>
+            <div class="table-responsive">
+              <table class="table-dark-custom">
+                <thead><tr><th>Nama</th><th>Jabatan</th><th>Gaji</th></tr></thead>
+                <tbody>
+                  {% for e in employees %}
+                  <tr>
+                    <td style="font-weight:600;font-size:0.82rem">{{ e['name'] }}</td>
+                    <td style="font-size:0.75rem;color:var(--text-muted)">{{ e['position'] }}</td>
+                    <td><span class="salary-badge">Rp {{ "{:,.0f}".format(e['salary']/1000000).replace(',','.') }}M</span></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-overview -->
+
+
+    <!-- ═══════════════════════════════════════
+         TAB 2 — TRANSAKSI
+    ═══════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-transactions">
+
+      <!-- Summary strip -->
+      <div class="row g-3 mb-4">
+        {% set pending   = transactions|selectattr('status','eq','pending')  |list|length %}
+        {% set completed = transactions|selectattr('status','eq','completed')|list|length %}
+        {% set cancelled = transactions|selectattr('status','eq','cancelled')|list|length %}
+        <div class="col-4">
+          <div class="kpi-card text-center">
+            <div class="kpi-num" style="color:var(--text)">{{ transactions|length }}</div>
+            <div class="kpi-label">Total Transaksi</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="kpi-card text-center">
+            <div class="kpi-num" style="color:var(--gold)">{{ pending }}</div>
+            <div class="kpi-label">Diproses</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="kpi-card text-center">
+            <div class="kpi-num" style="color:var(--success)">{{ completed }}</div>
+            <div class="kpi-label">Selesai</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search filter (client-side) -->
+      <div class="d-flex gap-3 mb-3 flex-wrap">
+        <input type="text" id="txSearch" oninput="filterTx()" placeholder="🔍 Cari username, produk, atau ID..."
+          class="form-control-dark" style="max-width:320px;flex:1" />
+        <select id="txStatus" onchange="filterTx()" class="form-control-dark" style="max-width:160px">
+          <option value="">Semua Status</option>
+          <option value="pending">⏳ Diproses</option>
+          <option value="completed">✅ Selesai</option>
+          <option value="cancelled">❌ Dibatalkan</option>
+        </select>
+      </div>
+
+      <div class="surface-box" style="padding:0;overflow:hidden">
+        <div class="trans-wrap">
+          <table class="table-dark-custom" id="txTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Pengguna</th>
+                <th>Produk</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Tanggal</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tx in transactions %}
+              <tr class="tx-row" data-status="{{ tx['status'] }}" data-search="{{ tx['username']|lower }} {{ tx['items_summary']|lower }} {{ tx['id'] }}">
+                <td>
+                  <span style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-muted)">#{{ "%05d"|format(tx['id']) }}</span>
+                </td>
+                <td>
+                  <div style="font-weight:600;font-size:0.85rem">{{ tx['username'] }}</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted)">{{ tx['email'] }}</div>
+                </td>
+                <td style="max-width:200px">
+                  <div style="font-size:0.78rem;line-height:1.4;color:var(--text-muted)">
+                    {{ tx['items_summary'][:80] }}{% if tx['items_summary']|length > 80 %}...{% endif %}
+                  </div>
+                  <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">{{ tx['item_count'] }} item</div>
+                </td>
+                <td>
+                  <span style="font-family:'Space Mono',monospace;font-size:0.85rem;font-weight:700;color:var(--gold)">
+                    Rp {{ "{:,.0f}".format(tx['total']).replace(',','.') }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge status-{{ tx['status'] }}">
+                    {% if tx['status']=='pending' %}⏳ Diproses
+                    {% elif tx['status']=='completed' %}✅ Selesai
+                    {% else %}❌ Dibatalkan{% endif %}
+                  </span>
+                </td>
+                <td style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap">
+                  {{ tx['created_at'][:16] if tx['created_at'] else '—' }}
+                </td>
+                <td>
+                  <!-- Update status form -->
+                  <form method="POST" action="/admin/order/status" class="d-flex gap-1 align-items-center">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+                    <input type="hidden" name="order_id" value="{{ tx['id'] }}" />
+                    <select name="status" class="form-control-dark" style="font-size:0.72rem;padding:4px 8px;border-radius:6px;width:auto">
+                      <option value="pending"   {% if tx['status']=='pending'   %}selected{% endif %}>Diproses</option>
+                      <option value="completed" {% if tx['status']=='completed' %}selected{% endif %}>Selesai</option>
+                      <option value="cancelled" {% if tx['status']=='cancelled' %}selected{% endif %}>Dibatalkan</option>
+                    </select>
+                    <button type="submit" class="btn-accent" style="padding:4px 10px;font-size:0.72rem;border-radius:6px;flex-shrink:0">
+                      <i class="bi bi-check2"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted)">Belum ada transaksi.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /tab-transactions -->
+
+
+    <!-- ═══════════════════════════════════════
+         TAB 3 — KELOLA PRODUK
+    ═══════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-products">
+      <div class="row g-4">
+
+        <!-- ── Tambah Produk ── -->
+        <div class="col-lg-4">
+          <div class="add-form-card">
+            <h3 style="font-size:0.95rem;font-weight:700;color:var(--success);margin-bottom:1.2rem">
+              <i class="bi bi-plus-circle-fill me-2"></i>Tambah Produk Baru
+            </h3>
+            <form method="POST" action="/admin/product/add">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+
+              <div class="mb-3">
+                <label class="form-label-dark">Nama Produk <span style="color:var(--danger)">*</span></label>
+                <input type="text" name="name" class="form-control-dark" placeholder="Nama produk lengkap" maxlength="200" required />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label-dark">Deskripsi</label>
+                <textarea name="description" class="form-control-dark" placeholder="Deskripsi singkat produk..." rows="3" maxlength="1000" style="resize:vertical"></textarea>
+              </div>
+
+              <div class="form-row-grid mb-3">
+                <div>
+                  <label class="form-label-dark">Harga (Rp) <span style="color:var(--danger)">*</span></label>
+                  <input type="number" name="price" class="form-control-dark" placeholder="contoh: 299000" min="1" required />
+                </div>
+                <div>
+                  <label class="form-label-dark">Stok <span style="color:var(--danger)">*</span></label>
+                  <input type="number" name="stock" class="form-control-dark" placeholder="contoh: 50" min="0" required />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label-dark">Kategori</label>
+                <select name="category_select" id="catSelect" class="form-control-dark" onchange="toggleCatInput(this)">
+                  <option value="">— Pilih atau ketik baru —</option>
+                  {% for cat in categories %}
+                  <option value="{{ cat['category'] }}">{{ cat['category'] }}</option>
+                  {% endfor %}
+                  <option value="__new__">➕ Kategori baru...</option>
+                </select>
+              </div>
+
+              <div class="mb-4" id="catNewWrap" style="display:none">
+                <label class="form-label-dark">Nama Kategori Baru</label>
+                <input type="text" name="category_new" id="catNewInput" class="form-control-dark" placeholder="Tulis kategori baru..." maxlength="50" />
+              </div>
+
+              <button type="submit" class="btn-accent w-100 justify-content-center" style="padding:0.75rem">
+                <i class="bi bi-plus-circle-fill"></i> Tambah Produk
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ── Daftar Produk ── -->
+        <div class="col-lg-8">
+          <div class="surface-box" style="padding:0;overflow:hidden">
+
+            <!-- Filter bar -->
+            <div style="padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <h3 style="font-size:0.95rem;font-weight:700;margin:0;flex:1">
+                <i class="bi bi-list-ul me-2" style="color:var(--text-muted)"></i>
+                Semua Produk ({{ all_products|length }})
+              </h3>
+              <input type="text" id="prodSearch" oninput="filterProds()" placeholder="🔍 Cari produk..."
+                class="form-control-dark" style="max-width:200px;font-size:0.8rem;padding:0.4rem 0.8rem" />
+              <select id="prodFilter" onchange="filterProds()" class="form-control-dark" style="max-width:140px;font-size:0.8rem;padding:0.4rem 0.8rem">
+                <option value="all">Semua</option>
+                <option value="1">✅ Aktif</option>
+                <option value="0">🚫 Nonaktif</option>
+              </select>
+            </div>
+
+            <!-- Product list -->
+            <div id="prodList">
+              {% set icons={'Software':'💻','Security':'🔐','Education':'🎓','Design':'🎨','OS':'🖥️','Engineering':'⚙️','Developer Tools':'🛠️','Productivity':'⚡'} %}
+              {% for p in all_products %}
+              <div class="product-row {% if not p['is_active'] %}disabled-row{% endif %} prod-item"
+                   data-name="{{ p['name']|lower }}" data-active="{{ p['is_active'] }}">
+
+                <!-- Icon -->
+                <div class="product-row-icon">{{ icons.get(p['category'],'📦') }}</div>
+
+                <!-- Info -->
+                <div class="flex-grow-1" style="min-width:0">
+                  <div style="font-weight:600;font-size:0.87rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                    {{ p['name'] }}
+                    {% if not p['is_active'] %}
+                      <span class="status-badge status-cancelled" style="font-size:0.65rem">NONAKTIF</span>
+                    {% endif %}
+                  </div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-top:1px">
+                    {{ p['category'] }} ·
+                    <span style="font-family:'Space Mono',monospace;color:var(--gold)">
+                      Rp {{ "{:,.0f}".format(p['price']).replace(',','.') }}
+                    </span>
+                    · Stok: <strong style="color:{% if p['stock']<=5 %}var(--danger){% else %}var(--text){% endif %}">{{ p['stock'] }}</strong>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex gap-2 flex-shrink-0">
+                  <!-- Toggle aktif / nonaktif -->
+                  <form method="POST" action="/admin/product/toggle/{{ p['id'] }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+                    <button type="submit"
+                      class="{% if p['is_active'] %}btn-danger{% else %}btn-accent{% endif %}"
+                      style="padding:0.35rem 0.8rem;font-size:0.72rem;border-radius:8px"
+                      title="{% if p['is_active'] %}Nonaktifkan produk{% else %}Aktifkan produk{% endif %}">
+                      {% if p['is_active'] %}
+                        <i class="bi bi-eye-slash-fill"></i> Nonaktif
+                      {% else %}
+                        <i class="bi bi-eye-fill"></i> Aktifkan
+                      {% endif %}
+                    </button>
+                  </form>
+                </div>
+              </div>
+              {% else %}
+              <div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Belum ada produk.</div>
+              {% endfor %}
+            </div><!-- /prodList -->
+
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /tab-products -->
+
+  </div><!-- /container -->
+</section>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+  // ── Tab switching ──────────────────────────────
+  function switchTab(btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.target).classList.add('active');
+    history.replaceState(null, '', '?tab=' + btn.dataset.target.replace('tab-', ''));
+  }
+
+  // Activate tab from URL query param
+  (function() {
+    const tab = new URLSearchParams(location.search).get('tab') || 'overview';
+    const btn = document.querySelector(`[data-target="tab-${tab}"]`);
+    if (btn) switchTab(btn);
+    else document.querySelector('[data-target="tab-overview"]').click();
+  })();
+
+  // ── Transaction filter ─────────────────────────
+  function filterTx() {
+    const q      = document.getElementById('txSearch').value.toLowerCase();
+    const status = document.getElementById('txStatus').value;
+    document.querySelectorAll('.tx-row').forEach(row => {
+      const matchQ = !q || row.dataset.search.includes(q);
+      const matchS = !status || row.dataset.status === status;
+      row.style.display = (matchQ && matchS) ? '' : 'none';
+    });
+  }
+
+  // ── Product filter ─────────────────────────────
+  function filterProds() {
+    const q      = document.getElementById('prodSearch').value.toLowerCase();
+    const filter = document.getElementById('prodFilter').value;
+    document.querySelectorAll('.prod-item').forEach(row => {
+      const matchQ = !q || row.dataset.name.includes(q);
+      const matchF = filter === 'all' || row.dataset.active === filter;
+      row.style.display = (matchQ && matchF) ? '' : 'none';
+    });
+  }
+
+  // ── Category input toggle ──────────────────────
+  function toggleCatInput(sel) {
+    const wrap  = document.getElementById('catNewWrap');
+    const input = document.getElementById('catNewInput');
+    if (sel.value === '__new__') {
+      wrap.style.display = 'block';
+      input.required = true;
+      sel.name = '';          // disable the select so only text input is submitted
+      input.name = 'category_new';
+    } else {
+      wrap.style.display = 'none';
+      input.required = false;
+      sel.name = 'category_select';
+      input.name = 'category_new_disabled';
+    }
+  }
+</script>
+{% endblock %}

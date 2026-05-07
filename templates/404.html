@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}404 Tidak Ditemukan — IBDA3202 Store{% endblock %}
+{% block content %}
+<div style="min-height:65vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:3rem 1rem">
+  <div>
+    <div style="font-size:3.5rem;font-family:'Space Mono',monospace;font-weight:700;color:var(--border);letter-spacing:-4px;margin-bottom:0.5rem">404</div>
+    <div style="font-size:1.2rem;font-weight:700;margin-bottom:0.5rem">Halaman Tidak Ditemukan</div>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin:0 auto 1.5rem;max-width:360px;line-height:1.6">
+      Halaman yang Anda cari tidak ada, telah dipindahkan, atau URL tidak valid.
+    </p>
+    <div class="d-flex gap-3 justify-content-center">
+      <a href="/" class="btn-accent"><i class="bi bi-house-fill me-2"></i>Beranda</a>
+      <a href="/products" class="btn-ghost"><i class="bi bi-grid-fill me-2"></i>Produk</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

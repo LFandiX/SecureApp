@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Keranjang Belanja — IBDA3202 Store{% endblock %}
+{% block extra_style %}
+.cart-hero { background: var(--surface); border-bottom: 1px solid var(--border); padding: 2rem 0; }
+.cart-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.2rem 1.5rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+.cart-item:hover { border-color: var(--border); }
+.qty-control { display: flex; align-items: center; gap: 8px; }
+.qty-btn { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+.qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+.qty-display { font-family: 'Space Mono', monospace; font-size: 0.9rem; font-weight: 700; width: 36px; text-align: center; }
+.order-summary { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; position: sticky; top: 100px; }
+{% endblock %}
+{% block content %}
+<div class="cart-hero">
+  <div class="container">
+    <div class="section-eyebrow">Belanja</div>
+    <h1 class="section-title">Keranjang Saya</h1>
+    <p style="color:var(--text-muted);font-size:0.85rem">
+      {% if items %}{{ items|length }} item dalam keranjang{% else %}Keranjang kosong{% endif %}
+    </p>
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+    {% if items %}
+    <div class="row g-4">
+      <!-- Cart Items -->
+      <div class="col-lg-8">
+        {% set icons = {'Software':'💻','Security':'🔐','Education':'🎓','Design':'🎨','OS':'🖥️','Engineering':'⚙️','Developer Tools':'🛠️','Productivity':'⚡'} %}
+        {% for item in items %}
+        <div class="cart-item fade-up" style="animation-delay:{{ loop.index0 * 0.07 }}s">
+          <div class="d-flex align-items-center gap-3">
+            <!-- Product icon -->
+            <div style="width:52px;height:52px;background:var(--accent-soft);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+              {{ icons.get(item.product['category'],'📦') }}
+            </div>
+
+            <!-- Info -->
+            <div class="flex-grow-1">
+              <div style="font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-weight:600">{{ item.product['category'] }}</div>
+              <div style="font-weight:600;font-size:0.92rem;margin-bottom:2px">{{ item.product['name'] }}</div>
+              <div style="font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--text-muted)">
+                Rp {{ "{:,.0f}".format(item.product['price']).replace(',','.') }} / unit
+              </div>
+            </div>
+
+            <!-- Quantity control -->
+            <form method="POST" action="/cart/update" class="qty-control">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+              <input type="hidden" name="product_id" value="{{ item.product['id'] }}" />
+              <button type="submit" name="quantity" value="{{ [1, item.quantity - 1]|max }}" class="qty-btn"><i class="bi bi-dash"></i></button>
+              <span class="qty-display">{{ item.quantity }}</span>
+              <button type="submit" name="quantity" value="{{ [50, item.quantity + 1]|min }}" class="qty-btn"><i class="bi bi-plus"></i></button>
+            </form>
+
+            <!-- Subtotal -->
+            <div style="text-align:right;min-width:120px">
+              <div style="font-family:'Space Mono',monospace;font-size:0.95rem;font-weight:700;color:var(--gold)">
+                Rp {{ "{:,.0f}".format(item.subtotal).replace(',','.') }}
+              </div>
+            </div>
+
+            <!-- Remove -->
+            <form method="POST" action="/cart/remove">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+              <input type="hidden" name="product_id" value="{{ item.product['id'] }}" />
+              <button type="submit" class="btn-danger" style="padding:0.4rem 0.7rem;border-radius:8px">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+
+        <a href="/products" class="btn-ghost mt-2">
+          <i class="bi bi-arrow-left"></i> Lanjut Belanja
+        </a>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="col-lg-4">
+        <div class="order-summary fade-up fade-up-2">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.2rem">
+            <i class="bi bi-receipt me-2" style="color:var(--gold)"></i>Ringkasan Pesanan
+          </h3>
+
+          {% for item in items %}
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div style="font-size:0.8rem;color:var(--text-muted);max-width:180px;line-height:1.4">
+              {{ item.product['name'][:35] }}{% if item.product['name']|length > 35 %}...{% endif %}
+              <span style="color:var(--text);font-weight:600"> ×{{ item.quantity }}</span>
+            </div>
+            <div style="font-family:'Space Mono',monospace;font-size:0.8rem;font-weight:600">
+              Rp {{ "{:,.0f}".format(item.subtotal).replace(',','.') }}
+            </div>
+          </div>
+          {% endfor %}
+
+          <div style="border-top:1px solid var(--border);margin:1rem 0;padding-top:1rem">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span style="font-size:0.82rem;color:var(--text-muted)">Subtotal</span>
+              <span style="font-family:'Space Mono',monospace;font-size:0.82rem">Rp {{ "{:,.0f}".format(total).replace(',','.') }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span style="font-size:0.82rem;color:var(--text-muted)">Pengiriman</span>
+              <span style="font-size:0.82rem;color:var(--success);font-weight:600">Gratis</span>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:1rem;margin-bottom:1.2rem">
+            <div class="d-flex justify-content-between align-items-center">
+              <span style="font-weight:700">Total</span>
+              <span style="font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:var(--gold)">
+                Rp {{ "{:,.0f}".format(total).replace(',','.') }}
+              </span>
+            </div>
+          </div>
+
+          <a href="/checkout" class="btn-gold w-100 justify-content-center" style="padding:0.85rem;font-size:0.9rem">
+            <i class="bi bi-credit-card-fill"></i> Lanjut ke Checkout
+          </a>
+
+          <div class="d-flex gap-2 justify-content-center mt-3">
+            <span style="font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:3px">
+              <i class="bi bi-shield-check-fill" style="color:var(--success)"></i> Pembayaran Aman
+            </span>
+            <span style="font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:3px">
+              <i class="bi bi-lock-fill" style="color:var(--accent)"></i> Data Terenkripsi
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+      <div style="font-size:4rem;margin-bottom:1rem">🛒</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.5rem">Keranjang Masih Kosong</h3>
+      <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1.5rem">Tambahkan produk digital favorit Anda ke keranjang.</p>
+      <a href="/products" class="btn-accent"><i class="bi bi-grid-fill me-2"></i>Jelajahi Produk</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}{{ product['name'] }} — IBDA3202 Store{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-5">
+        <div class="surface-box text-center" style="padding:3rem;background:var(--surface-alt)">
+          {% set icons = {'Software':'💻','Security':'🔐','Education':'🎓','Design':'🎨','OS':'🖥️','Engineering':'⚙️','Developer Tools':'🛠️','Productivity':'⚡'} %}
+          <div style="font-size:5rem;line-height:1;margin-bottom:1rem">{{ icons.get(product['category'],'📦') }}</div>
+          <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);font-weight:700">{{ product['category'] }}</div>
+        </div>
+
+        <!-- Stock & rating info -->
+        <div class="surface-box mt-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:0.8rem;color:var(--text-muted)">Ketersediaan</span>
+            {% if product['stock'] > 0 %}
+              <span style="font-size:0.82rem;color:var(--success);font-weight:600"><i class="bi bi-check-circle-fill me-1"></i>{{ product['stock'] }} unit</span>
+            {% else %}
+              <span style="font-size:0.82rem;color:var(--danger);font-weight:600">Habis</span>
+            {% endif %}
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:0.8rem;color:var(--text-muted)">Kategori</span>
+            <span class="tag">{{ product['category'] }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span style="font-size:0.8rem;color:var(--text-muted)">Garansi</span>
+            <span style="font-size:0.82rem;color:var(--text);font-weight:500">30 Hari</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <a href="/products" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:1.5rem">
+          <i class="bi bi-arrow-left"></i> Kembali ke produk
+        </a>
+        <div class="section-eyebrow">{{ product['category'] }}</div>
+        <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-0.5px;margin-bottom:1rem;line-height:1.25">{{ product['name'] }}</h1>
+        <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.75;margin-bottom:2rem">{{ product['description'] }}</p>
+
+        <div style="font-family:'Space Mono',monospace;font-size:2rem;font-weight:700;color:var(--gold);margin-bottom:1.5rem">
+          Rp {{ "{:,.0f}".format(product['price']).replace(',','.') }}
+        </div>
+
+        {% if current_user %}
+          <!-- Form tambah ke keranjang (fungsional) -->
+          <form method="POST" action="/cart/add" class="d-flex gap-3 align-items-end flex-wrap mb-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <input type="hidden" name="product_id" value="{{ product['id'] }}" />
+            <div>
+              <label class="form-label-dark">Jumlah</label>
+              <div class="d-flex align-items-center gap-2">
+                <button type="button" onclick="adjustQty(-1)" class="btn-ghost" style="padding:0.5rem 0.8rem;border-radius:8px">
+                  <i class="bi bi-dash"></i>
+                </button>
+                <input type="number" name="quantity" id="qtyInput" value="1" min="1" max="{{ product['stock'] }}"
+                       style="width:60px;text-align:center;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:0.5rem;font-family:'Space Mono',monospace;font-size:0.9rem" />
+                <button type="button" onclick="adjustQty(1)" class="btn-ghost" style="padding:0.5rem 0.8rem;border-radius:8px">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+            </div>
+            {% if product['stock'] > 0 %}
+              <button type="submit" class="btn-accent" style="padding:0.75rem 2rem;font-size:0.9rem">
+                <i class="bi bi-bag-plus-fill"></i> Tambah ke Keranjang
+              </button>
+            {% else %}
+              <button type="button" class="btn-ghost" disabled style="padding:0.75rem 2rem;font-size:0.9rem;opacity:0.5">
+                Stok Habis
+              </button>
+            {% endif %}
+          </form>
+
+          <a href="/cart" class="btn-gold" style="padding:0.75rem 2rem;font-size:0.9rem">
+            <i class="bi bi-bag-fill"></i> Lihat Keranjang
+          </a>
+        {% else %}
+          <div class="alert-info-dark mb-3">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <a href="/login" style="color:var(--accent);font-weight:600">Masuk</a> untuk membeli produk ini.
+          </div>
+          <a href="/login" class="btn-accent" style="padding:0.75rem 2rem;font-size:0.9rem">
+            <i class="bi bi-person-fill"></i> Masuk untuk Membeli
+          </a>
+        {% endif %}
+
+        <div class="d-flex gap-3 mt-4 pt-3" style="border-top:1px solid var(--border)">
+          <div style="font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:4px"><i class="bi bi-shield-check" style="color:var(--success)"></i> Lisensi Resmi</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:4px"><i class="bi bi-lightning" style="color:var(--gold)"></i> Pengiriman Instan</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:4px"><i class="bi bi-arrow-repeat" style="color:var(--accent)"></i> Garansi 30 Hari</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_script %}
+<script>
+  function adjustQty(delta) {
+    const input = document.getElementById('qtyInput');
+    const max = parseInt(input.max) || 99;
+    const val = Math.min(Math.max(1, parseInt(input.value || 1) + delta), max);
+    input.value = val;
+  }
+</script>
+{% endblock %}

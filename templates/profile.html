@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Profil — IBDA3202 Store{% endblock %}
+{% block extra_style %}
+.profile-hero { background:var(--surface); border-bottom:1px solid var(--border); padding:2.5rem 0; }
+.avatar-circle { width:80px; height:80px; background:linear-gradient(135deg,var(--accent),#A78BFA); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:700; color:#fff; margin-bottom:1rem; }
+.upload-zone { background:var(--surface-alt); border:2px dashed var(--border); border-radius:var(--radius-lg); padding:2.5rem; text-align:center; transition:all 0.3s; cursor:pointer; }
+.upload-zone:hover, .upload-zone.drag-over { border-color:var(--accent); background:var(--accent-soft); }
+.upload-zone input[type="file"] { display:none; }
+.file-type-badge { display:inline-flex; align-items:center; gap:4px; background:var(--surface); border:1px solid var(--border); color:var(--text-muted); border-radius:6px; padding:3px 8px; font-size:0.72rem; font-family:'Space Mono',monospace; }
+.security-rule { display:flex; align-items:flex-start; gap:8px; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.5rem; }
+{% endblock %}
+{% block content %}
+<div class="profile-hero">
+  <div class="container">
+    <div class="d-flex align-items-center gap-4">
+      <div class="avatar-circle">{{ username[0].upper() }}</div>
+      <div>
+        <div class="section-eyebrow">Profil Pengguna</div>
+        <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.2rem">{{ username }}</h1>
+        <p style="color:var(--text-muted);font-size:0.85rem">Kelola informasi dan foto profil Anda</p>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="surface-box">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.5rem"><i class="bi bi-camera-fill me-2" style="color:var(--accent)"></i>Unggah Foto Profil</h3>
+
+          {% if upload_info %}
+          <div class="alert-success-dark mb-4">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            Berhasil diunggah! Disimpan sebagai: <strong style="font-family:'Space Mono',monospace;font-size:0.8rem">{{ upload_info }}</strong>
+          </div>
+          {% endif %}
+          {% if error %}
+          <div class="alert-dark mb-4"><i class="bi bi-x-circle-fill me-2"></i>{{ error }}</div>
+          {% endif %}
+
+          <form method="POST" action="/profile" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <label class="upload-zone d-block mb-3" for="file_input" id="uploadZone">
+              <span style="font-size:2.5rem;display:block;margin-bottom:0.8rem">🖼️</span>
+              <div style="font-weight:600;margin-bottom:0.3rem">Klik atau seret file gambar</div>
+              <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem">Format yang diizinkan (whitelist):</div>
+              <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <span class="file-type-badge">.jpg</span>
+                <span class="file-type-badge">.jpeg</span>
+                <span class="file-type-badge">.png</span>
+                <span class="file-type-badge">.gif</span>
+                <span class="file-type-badge">.webp</span>
+              </div>
+              <input type="file" name="profile_pic" id="file_input" accept=".jpg,.jpeg,.png,.gif,.webp" />
+            </label>
+            <div id="fileName" style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;min-height:1.2rem"></div>
+            <button type="submit" class="btn-accent w-100 justify-content-center" style="padding:0.75rem">
+              <i class="bi bi-cloud-upload-fill"></i> Unggah Sekarang
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="surface-box mb-4">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.2rem"><i class="bi bi-person-fill me-2" style="color:var(--gold)"></i>Informasi Akun</h3>
+          <div class="d-flex flex-column gap-3">
+            <div>
+              <label class="form-label-dark">Username</label>
+              <div class="form-control-dark" style="cursor:default;opacity:0.7">{{ username }}</div>
+            </div>
+            <div>
+              <label class="form-label-dark">Status Akun</label>
+              <div style="display:inline-flex;align-items:center;gap:6px;color:var(--success);font-size:0.85rem;font-weight:600">
+                <span style="width:8px;height:8px;background:var(--success);border-radius:50%;display:inline-block"></span> Aktif
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security info box -->
+        <div class="surface-box" style="background:rgba(34,197,94,0.04);border-color:rgba(34,197,94,0.2)">
+          <h3 style="font-size:0.9rem;font-weight:700;color:var(--success);margin-bottom:1rem">
+            <i class="bi bi-shield-check-fill me-2"></i>Proteksi Upload Aktif
+          </h3>
+          <div class="security-rule"><i class="bi bi-check-circle-fill" style="color:var(--success);flex-shrink:0;margin-top:1px"></i><span>Whitelist ekstensi: hanya .jpg, .jpeg, .png, .gif, .webp</span></div>
+          <div class="security-rule"><i class="bi bi-check-circle-fill" style="color:var(--success);flex-shrink:0;margin-top:1px"></i><span>Magic bytes verified — konten file diperiksa, bukan hanya ekstensi</span></div>
+          <div class="security-rule"><i class="bi bi-check-circle-fill" style="color:var(--success);flex-shrink:0;margin-top:1px"></i><span>Nama file diganti dengan UUID acak (tidak bisa ditebak)</span></div>
+          <div class="security-rule"><i class="bi bi-check-circle-fill" style="color:var(--success);flex-shrink:0;margin-top:1px"></i><span>Batas ukuran file: maksimal 2MB</span></div>
+          <div class="security-rule"><i class="bi bi-check-circle-fill" style="color:var(--success);flex-shrink:0;margin-top:1px"></i><span>Double-dot exploit dicegah (misal: shell.php.jpg)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_script %}
+<script>
+  const input = document.getElementById('file_input');
+  const label = document.getElementById('fileName');
+  const zone  = document.getElementById('uploadZone');
+  input.addEventListener('change', function() {
+    if (this.files[0]) { label.textContent = '📎 ' + this.files[0].name; label.style.color = 'var(--text)'; }
+  });
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; label.textContent = '📎 ' + e.dataTransfer.files[0].name; }
+  });
+</script>
+{% endblock %}
